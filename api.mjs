@@ -3,10 +3,16 @@ import bodyParser from 'body-parser'
 import { shortenUrlSchema } from './data/validation.mjs'
 import { createShortUrl, getOriginalUrl } from './data/db.mjs'
 import { logger, requestLogger } from './data/logging.mjs'
-
+import cors from 'cors'
 const app = express()
 const port = 3000
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
+app.use(cors({
+  origin: FRONTEND_URL,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}))
 app.use(express.static('public'))
 app.use(bodyParser.json())
 app.use(requestLogger)
