@@ -1,19 +1,22 @@
 import { shortenUrlSchema } from '../data/validation.mjs'
 
+const API_URL = import.meta.env.VITE_API_URL
+console.log({ API_URL })
 const form = document.getElementById('urlForm')
 const result = document.getElementById('result')
 
-const displayResult = (message = '', isError = false) => {
+const displayResult = (message: string, isError = false, isHtml = false) => {
   if (!result) return
-
-  console.log({ message })
-  result.textContent = message
   result.className = isError ? 'error' : 'success'
+  if (isHtml) {
+    result.innerHTML = message
+  } else {
+    result.textContent = message
+  }
 }
 
 form?.addEventListener('submit', async (event) => {
   event.preventDefault()
-  console.log(event)
 
   const input = document.getElementById('originalUrl') as HTMLInputElement
   const originalUrl = input?.value
@@ -26,30 +29,28 @@ form?.addEventListener('submit', async (event) => {
   try {
     const validation = shortenUrlSchema.safeParse({ originalUrl })
     if (!validation.success) {
-      throw new Error('Invalid URL format')
+      displayResult('Invalid URL format', true)
+      return
     }
 
-    const response = await fetch('/shorten', {
+    const response = await fetch(`${API_URL}/shorten`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ originalUrl }),
-    }).catch((error) => {
-      throw new Error('Failed to fetch')
     })
 
-    const data = await response.json().catch((error) => {
-      throw new Error('Failed to parse server response')
-    })
+    const data = await response.json()
 
     if (response.ok) {
-      const shortUrl = `${window.location.href}${data.shortUrl}`
-      displayResult(shortUrl)
+      const baseUrl = API_URL || window.location.origin
+      const shortUrl = `${baseUrl}/${data.shortUrl}`
+      displayResult(`Shortened URL: <a href="${shortUrl}" target="_blank" rel="noopener">${shortUrl}</a>`, false, true)
     } else {
-      displayResult(data.error?.message ?? data.error, true)
+      displayResult(`Error: ${data.error}`, true)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof Error) {
       displayResult(error.message, true)
     } else {
