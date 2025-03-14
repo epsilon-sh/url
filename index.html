@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <h1>URL Shortener</h1>
+
+  <form id="urlForm">
+    <label for="originalUrl">Enter URL:</label>
+    <input type="url" id="originalUrl" name="originalUrl" placeholder="https://example.com" required>
+    <button type="submit">Shorten URL</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script type="module">
+    import { shortenUrlSchema } from './validation.mjs'
+
+    const form = document.getElementById('urlForm')
+    const result = document.getElementById('result')
+
+    const displayResult = (message, isError = false) => {
+      result.textContent = message
+      result.className = isError ? 'error' : 'success'
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const originalUrl = document.getElementById('originalUrl').value
+
+      try {
+        const validation = shortenUrlSchema.safeParse({ originalUrl })
+        if (!validation.success) {
+          displayResult('Invalid URL format', true)
+          return
+        }
+
+        const response = await fetch('/shorten', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ originalUrl }),
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+          const shortUrl = `${window.location.origin}/${data.shortUrl}`
+          displayResult(`Shortened URL: ${shortUrl}`)
+        } else {
+          displayResult(`Error: ${data.error}`, true)
+        }
+      } catch (error) {
+        displayResult(`Error: ${error.message}`, true)
+      }
+    })
+  </script>
+</body>
+
+</html>
