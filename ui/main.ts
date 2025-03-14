@@ -15,7 +15,9 @@ form?.addEventListener('submit', async (event) => {
   event.preventDefault()
   console.log(event)
 
-  const originalUrl = document.getElementById('originalUrl')?.value
+  const input = document.getElementById('originalUrl') as HTMLInputElement
+  const originalUrl = input?.value
+
   if (!originalUrl) {
     displayResult('Please enter a URL', true)
     return
@@ -48,6 +50,10 @@ form?.addEventListener('submit', async (event) => {
       displayResult(data.error?.message ?? data.error, true)
     }
   } catch (error) {
-    displayResult(error.message, true)
+    if (error instanceof Error) {
+      displayResult(error.message, true)
+    } else {
+      displayResult('An unexpected error occurred', true)
+    }
   }
 })
