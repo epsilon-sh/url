@@ -5,7 +5,7 @@ import { createShortUrl, getOriginalUrl } from './data/db.mjs'
 import { logger, requestLogger } from './data/logging.mjs'
 import cors from 'cors'
 const app = express()
-const port = 3000
+const port = process.env.API_PORT || 3000
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 app.use(cors({
